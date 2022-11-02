@@ -2,9 +2,11 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import mongoose from 'mongoose'
+import bodyParser from 'body-parser'
 
 // ! Importing routes
 import authRoutes from './routes/auth.routes'
+import courseRoutes from './routes/course.routes'
 
 // ! Importing controllers
 
@@ -15,10 +17,11 @@ dotenv.config();
 app.use(cors(), (req, res, next) => { next() })
 
 // ! Limiting the json request/response
-app.use(express.json({ limit: '1000mb' }));
+app.use(bodyParser.json({ limit: '1000mb' }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 
-app.get('/', (req, res, next) => {
+app.get('/api', (req, res, next) => {
     res.json({
         'message' : `Server is running at Port: ${process.env.PORT}`,
     })
@@ -28,3 +31,4 @@ app.listen(process.env.PORT, () => console.log(`Server is running at Port: ${pro
 
 
 app.use('/api/auth', authRoutes)
+app.use('/api/course', courseRoutes)

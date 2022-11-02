@@ -28,4 +28,4 @@ const classSchema = new ClassSchema({
 
 }, {timestamps: true})
 
-module.exports = mongoose.model("ClassSchema", classSchema)
+export default mongoose.model("ClassSchema", classSchema)

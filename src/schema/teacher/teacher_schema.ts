@@ -1,17 +1,22 @@
 import mongoose, { Mongoose } from "mongoose";
 const TeacherSchema = mongoose.Schema
 
+// ! Importing Course Schema
+import CourseSchema from '../class/course_schema'
+
 
 const teacherSchema = new TeacherSchema({
 
-    name: {
-        type: String, required: true
+    role_id : {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     },
 
-    email: {type: String, required: true},
-
-    
-
+    course_teaches: {
+        type: [CourseSchema],
+        dropDups: true,
+        unique: true,
+    },
 
 
 }, {timestamps: true})
