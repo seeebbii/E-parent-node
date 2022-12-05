@@ -15,7 +15,7 @@ const authSchema = new AuthSchema({
     // ! 2. Parent (can never be admin)
     
     role: {
-        type: String,
+        type: Number,
         required: true,
     },
 
@@ -56,10 +56,14 @@ const authSchema = new AuthSchema({
         default: null
     },
 
+    fcm_token: {
+        type: String,
+        default: null,
+    }
 
 
 }, {timestamps: true})
 
 
 
-export default mongoose.model('TeacherSchema', authSchema)
+export default mongoose.model('AuthSchema', authSchema)

@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
+import multer from "multer"
 
 // ! Importing routes
 import authRoutes from './routes/auth.routes'
@@ -11,6 +12,7 @@ import courseRoutes from './routes/course.routes'
 // ! Importing controllers
 
 const app = express();
+const upload = multer(); 
 dotenv.config();
 
 
@@ -19,6 +21,7 @@ app.use(cors(), (req, res, next) => { next() })
 // ! Limiting the json request/response
 app.use(bodyParser.json({ limit: '1000mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(upload.any());
 
 
 app.get('/api', (req, res, next) => {
