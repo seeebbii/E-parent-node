@@ -13,7 +13,7 @@ const teacherSchema = new TeacherSchema({
     },
 
     course_teaches: {
-        type: [CourseSchema],
+        type: [mongoose.Schema.Types.ObjectId],
         dropDups: true,
         unique: true,
     },

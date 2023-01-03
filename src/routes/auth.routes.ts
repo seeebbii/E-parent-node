@@ -6,6 +6,8 @@ import multer from 'multer';
 const router = express.Router();
 
 router.get('/', Token.verifyToken, authController.getAll);
+router.get('/profile', Token.fetchProfile, authController.getAll);
+
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 

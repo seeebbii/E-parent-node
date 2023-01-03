@@ -1,15 +1,12 @@
 import { timeStamp } from 'console'
 import mongoose from 'mongoose'
 
-// ! Importing teacher's Schema
-import TeacherSchema from '../teacher/teacher_schema'
-
 const ClassSchema = mongoose.Schema
 
 const classSchema = new ClassSchema({
 
     grade: {
-        type: String,
+        type: Number,
         required: true
     },
 
@@ -18,10 +15,13 @@ const classSchema = new ClassSchema({
         required: true,
     },
 
-    classTeacher: TeacherSchema,
+    classTeacher: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
 
     studentsEnrolled : {
-        type: Array,
+        type: [mongoose.Schema.Types.ObjectId],
         required: false
     }
     

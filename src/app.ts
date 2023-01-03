@@ -8,6 +8,8 @@ import multer from "multer"
 // ! Importing routes
 import authRoutes from './routes/auth.routes'
 import courseRoutes from './routes/course.routes'
+import classRoutes from './routes/class.routes'
+import teacherRoutes from './routes/teacher.routes'
 
 // ! Importing controllers
 
@@ -35,3 +37,5 @@ app.listen(process.env.PORT, () => console.log(`Server is running at Port: ${pro
 
 app.use('/api/auth', authRoutes)
 app.use('/api/course', courseRoutes)
+app.use('/api/class', classRoutes)
+app.use('/api/teacher', teacherRoutes)

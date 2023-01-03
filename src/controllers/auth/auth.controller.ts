@@ -1,5 +1,7 @@
 import express from 'express' 
 import AuthSchema from '../../schema/auth/auth_schema'
+import ParentSchema from '../../schema/parent/parent_schema'
+import TeacherSchema from '../../schema/teacher/teacher_schema'
 import Token from "../../service/token"
 require('dotenv').config()
 
@@ -30,27 +32,37 @@ exports.register = async (req: express.Request, res: express.Response, next : an
         // Creating user
         authSchema.save().then( async (result) => {
             // sendOtp(authSchema);
-            res.status(200).json({status:200, success: true, message: "OTP sent to your phone number", data: result })
+
+            // Creating Parent or Teacher object according to the role
+            if(authSchema.role == 1){
+                // Create Teacher Object
+                await new TeacherSchema({role_id: result._id}).save();
+            }else{
+                // Create Parent Object
+                await new ParentSchema({role_id: result._id}).save();
+            } 
+
+            res.status(200).json({status:200, success: true, message: "OTP sent to your phone number", data: result });
         }).catch((err) => {
             if(err.name === "ValidationError"){
-                return res.status(500).json({ status:500, messgae: "Validation Error", err: err, success: false });
+                return res.status(500).json({ status:500, message: "Validation Error", err: err, success: false });
             }
-            res.status(400).json({ status: 400, messgae: err, success: false });
+            res.status(400).json({ status: 400, message: err, success: false });
         })
 
     }else{
         // If the user already exists and not verified
         if(foundUser.verified === false){
             // sendOtp(authSchema);
-            res.status(401).json({ status: 401, messgae: "Please verify your account", success: false });
+            res.status(401).json({ status: 401, message: "Please verify your account", success: false });
         }else{
             // If the account is verified but the entries are duplicate
             if(foundUser.email === authSchema.email){
-                res.status(401).json({ status: 401, messgae: "Email with this account is already registered", success: false });
+                res.status(401).json({ status: 401, message: "Email with this account is already registered", success: false });
             }
 
             else if(foundUser.phone === authSchema.phone){
-                res.status(401).json({ status: 401, messgae: "This phone number is already linked with an account", success: false });
+                res.status(401).json({ status: 401, message: "This phone number is already linked with an account", success: false });
             }
 
         }
@@ -61,9 +73,9 @@ exports.register = async (req: express.Request, res: express.Response, next : an
 //! Login User
 exports.login = async (req: express.Request, res: express.Response, next : any) => {
 
-    const { email, password, fcm_token } = req.body;
+    const { phone, password, fcm_token } = req.body;
 
-    var auth = await AuthSchema.findOne({ email: email });
+    var auth = await AuthSchema.findOne({complete_phone: phone });
 
     if (auth !== null) {
 
@@ -80,17 +92,26 @@ exports.login = async (req: express.Request, res: express.Response, next : any) 
 
             auth!.fcm_token = fcm_token;
             const token = Token.generateToken(auth);
-            AuthSchema.findOneAndUpdate({id: auth.id}, {fcm_token: fcm_token}).then().then((result) => {
-                res.status(200).json({status: 200, success: true, message: "Login successful!", token: token, data: auth });
+            AuthSchema.findOneAndUpdate({_id: auth.id}, {fcm_token: fcm_token}).then(async (result) => {
+                var toReturnObject;
+                if(auth?.role == 1){
+                    // Return Teacher's Object
+                    toReturnObject = await TeacherSchema.findOne({role_id: auth._id});
+                    res.status(200).json({status: 200, success: true, message: "Login successful!", token: token, teacherData: toReturnObject, user: auth });
+                }else{
+                    // Return Parent's Object
+                    toReturnObject = await ParentSchema.findOne({role_id: auth!._id});
+                    res.status(200).json({status: 200, success: true, message: "Login successful!", token: token, parentData: toReturnObject, user: auth })
+                } 
             }).catch(err => {
                 res.status(400).json({status: 400, success: true, message: err, });
             })
 
         } else {
-            res.status(404).json({ error: "Invalid email or password", success: false });
+            res.status(404).json({status: 401, message: "Invalid phone or password", success: false });
         }
     } else {
-        res.status(404).json({ error: "Invalid email or password", success: false });
+        res.status(404).json({status: 401, message: "Invalid phone or password", success: false });
     }
 
 }
@@ -99,9 +120,45 @@ exports.login = async (req: express.Request, res: express.Response, next : any) 
 
 
 
-exports.getAll =  (req: express.Request, res: express.Response, next : any) => {
+exports.getAll = async (req: express.Request, res: express.Response, next : any) => {
+
+    let userMap = <Array<Map<any, any>>>[];
     
-    AuthSchema.find().then((result) => {
+    AuthSchema.find().then((result : Array<Object>) => {
+
+        // result.forEach((element : any) => {
+            
+        //     if(element['role'] == 1){
+        //         TeacherSchema.findOne({role_id: element['_id']}).then((teacher) => {
+                   
+        //             // Creating teacher's map
+        //             let teacherMap = new Map<any, any>();
+        //             teacherMap.set("user", element);
+        //             teacherMap.set("teacherData", teacher);
+                    
+        //             userMap.push(teacherMap);
+
+        //             console.log(teacherMap)
+        //         });
+        //     }else{
+        //         ParentSchema.findOne({role_id: element['_id']}).then((parent) => {
+                   
+        //             // Creating teacher's map
+        //             let parentMap = new Map<any, any>();
+        //             parentMap.set("user", element);
+        //             parentMap.set("parentData", parent);
+                    
+        //             userMap.push(parentMap);
+
+        //             console.log(parentMap)
+        //         });
+
+        //     }
+
+        //     console.log(userMap)
+
+        // });
+
         res.status(200).json({status:200, success: true, data: result})
     }).catch((err) => {
         res.status(400).json({status:400, messgae: err, success: false });
