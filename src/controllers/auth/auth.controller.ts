@@ -2,6 +2,7 @@ import express from 'express'
 import AuthSchema from '../../schema/auth/auth_schema'
 import ParentSchema from '../../schema/parent/parent_schema'
 import TeacherSchema from '../../schema/teacher/teacher_schema'
+import NotificationSchema from '../../schema/notification/notification_schema'
 import Token from "../../service/token"
 require('dotenv').config()
 
@@ -11,6 +12,7 @@ const client = twilio( process.env.ACCOUNT_SID,  process.env.AUTH_TOKEN);
 
 // ! Package imports
 import { genSaltSync, hashSync, compareSync } from 'bcrypt'
+import { ObjectId } from 'mongodb'
 
 
 // ! Register User
@@ -161,7 +163,7 @@ exports.getAll = async (req: express.Request, res: express.Response, next : any)
 
         res.status(200).json({status:200, success: true, data: result})
     }).catch((err) => {
-        res.status(400).json({status:400, messgae: err, success: false });
+        res.status(400).json({status:400, message: err, success: false });
     })
     
 }
@@ -174,7 +176,7 @@ exports.verifyOtp = async (req: express.Request, res: express.Response, next : a
     let result = await client.verify.v2.services(process.env.SERVICE_ID!).verificationChecks.create({to: complete_phone, code: code});
 
     if(result == null){
-        res.status(401).json({ status: 401, messgae: "Invalid OTP", success: false });
+        res.status(401).json({ status: 401, message: "Invalid OTP", success: false });
         return;
     }
 
@@ -184,10 +186,10 @@ exports.verifyOtp = async (req: express.Request, res: express.Response, next : a
         if(updatedUser != null){
             res.status(200).json({status: 200, success: true, message: "Account verified",});
         }else{
-            res.status(401).json({ status: 401, messgae: "Invalid OTP", success: false });
+            res.status(401).json({ status: 401, message: "Invalid OTP", success: false });
         }
     }else{
-        res.status(401).json({ status: 401, messgae: "Invalid OTP", success: false });
+        res.status(401).json({ status: 401, message: "Invalid OTP", success: false });
     }
 }
 
@@ -223,4 +225,35 @@ exports.resendOtp = async (req: express.Request, res: express.Response, next : a
             message: "An error occurred sending OTP"
         });
     }
+}
+
+
+exports.getAllNotifications = async (req: express.Request, res: express.Response, next : any) => {
+
+    const {user_id} = req.body
+    const userObjectId = new ObjectId(user_id)
+
+    let notifications = await NotificationSchema.find({sent_to: userObjectId}).sort({sent_at: -1});
+
+    for(var notification of notifications){
+        notification.sent_by = await AuthSchema.findOne({_id: notification.sent_by})
+        notification.sent_to = await AuthSchema.findOne({_id: notification.sent_to})
+    }
+
+    let notificationsCount = await NotificationSchema.find({sent_to: userObjectId, read: false});
+
+    res.status(200).json({status: 200, success: true, count: notificationsCount.length, data: notifications,})
+}
+
+exports.updateNotificationStatus = async (req: express.Request, res: express.Response, next : any) => {
+    const {notification_id} = req.body
+
+    let notificationStatus = await NotificationSchema.findOneAndUpdate({_id: notification_id}, {read: true});
+
+    if(notificationStatus != null) {
+        res.status(200).json({status: 200, success: true, message: "Notification read successful"})
+    }else{
+        res.status(500).json({status: 500, success: true, message: "Error reading notification"})
+    }
+
 }

@@ -14,4 +14,7 @@ router.post('/login', authController.login);
 router.post('/verify', authController.verifyOtp);
 router.post('/resend', authController.resendOtp);
 
+router.post('/notifications/', authController.getAllNotifications);
+router.post('/update_notification_status/', authController.updateNotificationStatus);
+
 export default router;

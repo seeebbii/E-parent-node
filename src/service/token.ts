@@ -3,8 +3,11 @@ import express from 'express';
 import * as fs from 'fs';
 import AuthSchema from '../schema/auth/auth_schema'
 import ParentSchema from '../schema/parent/parent_schema'
+import StudentsSchema from '../schema/student/student_schema'
 import TeacherSchema from '../schema/teacher/teacher_schema'
-import { json } from 'body-parser';
+import { Utils } from '../service/utils'
+const studentController = require('../controllers/class/student.controller')
+const courseController = require('../controllers/class/course.controller')
 
 class Token {
  
@@ -58,13 +61,51 @@ class Token {
                     var auth = new AuthSchema(JSON.parse(parsedObject)['user'])
                     if(auth?.role == 1){
                         // Return Teacher's Object
-                        TeacherSchema.findOne({role_id: auth._id}).then((teacher: any) => {
+                        TeacherSchema.findOne({role_id: auth._id}).then( async (teacher: any) => {
+
+                            if(teacher.course_teaches.length > 0){
+
+                                // Call fetch course function from courseController
+
+                                let fetchedTeacher: Array<Object> = []
+
+                                for(var id of teacher.course_teaches){
+                                    
+                                    let course = await courseController.fetchCourseById(id);
+                                    if(course != null) {
+                                        fetchedTeacher.push(course)
+                                    }
+                                }
+                                teacher.course_teaches = fetchedTeacher;
+                            }
+
                             res.status(200).json({status: 200, success: true, message: "Login successful!", token: token, teacherData: teacher, user: auth });
                         });
+
                     }else{
                         // Return Parent's Object
-                        ParentSchema.findOne({role_id: auth!._id}).then((parent: any) => {
+                        ParentSchema.findOne({role_id: auth!._id}).then( async (parent: any) => {
+                            // Check if the parent->students is not empty
+
+                            if(parent.students.length > 0){
+
+                                // Call fetch student profile function from studentController
+
+                                let fetchedStudents: Array<Object> = []
+
+                                for(var id of parent.students){
+
+                                    // let student = await studentController.fetchStudentProfile(id);
+                                    let student = await studentController.fetchStudentProfile(id);
+                                    if(student != null) {
+                                        fetchedStudents.push(student)
+                                    }
+                                }
+                                parent.students = fetchedStudents;
+                            }
+
                             res.status(200).json({status: 200, success: true, message: "Login successful!", token: token, parentData: parent, user: auth })
+
                         });
                     } 
 

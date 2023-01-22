@@ -20,7 +20,29 @@ exports.getAllTeachers = async (req: express.Request, res: express.Response, nex
         res.status(200).json({status:200, success: true, data: arr})
         
     }).catch((err) => {
-        res.status(400).json({status:400, messgae: err, success: false });
+        res.status(400).json({status:400, message: err, success: false });
     })
 
+}
+
+
+exports.addCourses = async (req: express.Request, res: express.Response, next : express.NextFunction) => {
+
+    const {teacher_id, courses} = req.body
+    //! find if the teacher exists
+
+    let teacher = await TeacherSchema.findOne({_id: teacher_id});
+
+    if(teacher != null){
+        //! Add courses to teachers courses array
+
+        teacher.updateOne({ $set: { course_teaches: courses } }).then((updateResponse) => {
+            res.status(200).json({status:200, success: true, message: "Courses added successfully"})
+        }).catch((err) => {
+            res.status(400).json({ status:400, success: false,  message: err.message, });
+        });
+
+    }else{
+        res.status(400).json({ status:400, success: false,  message: "Teacher does not exists", });
+    }
 }

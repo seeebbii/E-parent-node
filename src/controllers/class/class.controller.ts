@@ -7,7 +7,7 @@ exports.getAll = async (req: express.Request, res: express.Response, next : any)
     ClassSchema.find().then((result : any) => {
         res.status(200).json({status:200, success: true, data: result})
     }).catch((err) => {
-        res.status(400).json({status:400, messgae: err, success: false });
+        res.status(400).json({status:400, message: err, success: false });
     })
     
 }
@@ -34,13 +34,13 @@ exports.insert = async (req: express.Request, res: express.Response, next : any)
             // var teacherAlreadyTeaching = await ClassSchema.findOne({classTeacher: teacherId});
 
             // if(teacherAlreadyTeaching != null) {
-            //     return res.status(400).json({ status:400, messgae: "No duplicate class teacher", success: false });
+            //     return res.status(400).json({ status:400, message: "No duplicate class teacher", success: false });
             // }
 
             new ClassSchema({grade: grade, section: section, classTeacher: teacherId}).save().then((result) => {
                 return res.status(200).json({status:200, success: true, message: "New class created"})
             }).catch((err) => {
-                return res.status(400).json({ status:400, messgae: err, success: false });
+                return res.status(400).json({ status:400, message: err, success: false });
             })
         }
 

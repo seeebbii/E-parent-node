@@ -9,7 +9,7 @@ const parentSchema = new ParentSchema({
     },
 
     students: {
-        type: [mongoose.Schema.Types.ObjectId],
+        type: Array,
         default: []
     }
 
