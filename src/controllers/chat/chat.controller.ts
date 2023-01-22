@@ -106,7 +106,7 @@ exports.createRoom = async (req: express.Request, res: express.Response, next : 
 
 exports.sendMessage = async (req: express.Request, res: express.Response, next : express.NextFunction) => {
     
-    const {room_id, sent_by, message, sent_to} = req.body
+    const {room_id, sent_by, message, sent_to, socket_id} = req.body
 
 
     // ! Fetch sent_by and sent_to user objects
@@ -122,8 +122,13 @@ exports.sendMessage = async (req: express.Request, res: express.Response, next :
         "sent_at": Date.now()
     }
 
+    // Emit from the socket after cmparing socket id to our list
+    // let index = SocketHandler.currentSocket.findIndex(e => e.id === socket_id)
+    // SocketHandler.currentSocket[index].emit('message', JSON.stringify(messageObject));
 
-    SocketHandler.currentSocket.emit('message', JSON.stringify(messageObject));
+    SocketHandler.io.emit('message', JSON.stringify(messageObject));
+
+    // console.log(`Emitting using the socket id: ${SocketHandler.currentSocket[index].id}`)
 
     // Find if the room already exists
 
