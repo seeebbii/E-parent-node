@@ -38,7 +38,7 @@ exports.register = async (req: express.Request, res: express.Response, next : an
             // Creating Parent or Teacher object according to the role
             if(authSchema.role == 1){
                 // Create Teacher Object
-                await new TeacherSchema({role_id: result._id}).save();
+                await new TeacherSchema({role_id: result._id, course_teaches: []}).save()
             }else{
                 // Create Parent Object
                 await new ParentSchema({role_id: result._id}).save();

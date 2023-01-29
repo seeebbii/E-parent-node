@@ -116,6 +116,7 @@ exports.sendMessage = async (req: express.Request, res: express.Response, next :
 
 
     let messageObject = {
+        "room_id": room_id,
         "sent_by": sent_by,
         "sent_to": sent_to,
         "message": message,

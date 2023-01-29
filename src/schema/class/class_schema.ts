@@ -16,12 +16,12 @@ const classSchema = new ClassSchema({
     },
 
     classTeacher: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Object,
         required: true
     },
 
     studentsEnrolled : {
-        type: [mongoose.Schema.Types.ObjectId],
+        type: [Object],
         required: false
     }
     

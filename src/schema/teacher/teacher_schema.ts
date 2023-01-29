@@ -1,3 +1,4 @@
+import { any } from "async";
 import mongoose, { Mongoose } from "mongoose";
 const TeacherSchema = mongoose.Schema
 
@@ -14,7 +15,8 @@ const teacherSchema = new TeacherSchema({
 
     course_teaches: {
         type: Array,
-        default: []
+        default: [],
+        unique: false,
     },
 
 

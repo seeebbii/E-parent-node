@@ -28,7 +28,10 @@ const studentSchema = new StudentSchema({
         required : true
     },
 
-    class_id: mongoose.Schema.Types.ObjectId,
+    class_id: {
+        type: Object,
+        default: null
+    },
 
     courses_enrolled: {
         type: Array,
