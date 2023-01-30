@@ -233,7 +233,7 @@ exports.getAllNotifications = async (req: express.Request, res: express.Response
     const {user_id} = req.body
     const userObjectId = new ObjectId(user_id)
 
-    let notifications = await NotificationSchema.find({sent_to: userObjectId}).sort({sent_at: -1});
+    let notifications = await NotificationSchema.find({sent_to: userObjectId.toString()}).sort({sent_at: -1});
 
     for(var notification of notifications){
         notification.sent_by = await AuthSchema.findOne({_id: notification.sent_by})
