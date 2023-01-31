@@ -10,8 +10,9 @@ import AttendanceSchema from '../../schema/class/attendance_schema'
 import NotificationSchema from '../../schema/notification/notification_schema'
 import { Utils } from '../../service/utils'
 import LeaveSchema from '../../schema/class/leave_schema'
+import AcademicReportSchema from '../../schema/class/academic_report_schema'
 import FirebaseAdminHelper from '../../service/firebase_admin_helper'
-
+import path from 'path'
 
 exports.getAll = async (req: express.Request, res: express.Response, next : any) => {
 
@@ -406,7 +407,7 @@ exports.requestLeave =  async (req: express.Request, res: express.Response, next
     
         FirebaseAdminHelper.messaging().sendToDevice(teacher!.fcm_token, message_payload, notification_options);
 
-        await new NotificationSchema({sent_by: parent_id, sent_to: teacher_id, notification_type: "Leave", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+        await new NotificationSchema({sent_by: parent_id.toString(), sent_to: teacher_id.toString(), notification_type: "Leave", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
 
         return res.status(200).json({status:200, success: true, message: "Your request have been submitted"})
     }else{
@@ -488,3 +489,27 @@ exports.fetchParent = async (req: express.Request, res: express.Response, next :
     return res.status(200).json({status:200, success: true, data: data})
 
 }
+
+
+exports.uploadAcademics = async (req: express.Request, res: express.Response, next : any) => {
+
+    // console.log(__dirname);
+
+    // console.log(req.file)
+
+    next()
+
+}
+
+exports.uploadClassAssignment = async (req: express.Request, res: express.Response, next : any) => {
+
+    console.log(__dirname);
+
+    console.log(req.body);
+
+    console.log(req.file)
+
+    next()
+
+}
+

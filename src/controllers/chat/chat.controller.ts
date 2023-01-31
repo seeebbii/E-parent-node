@@ -183,7 +183,7 @@ exports.sendMessage = async (req: express.Request, res: express.Response, next :
 
 
     FirebaseAdminHelper.messaging().sendToDevice(sentToUser!.fcm_token, message_payload, notification_options);
-    await new NotificationSchema({sent_by: sentByUser!._id, sent_to: sentToUser!._id, notification_type: "Message", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+    await new NotificationSchema({sent_by: sentByUser!._id.toString(), sent_to: sentToUser!._id.toString(), notification_type: "Message", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
 
 }
 

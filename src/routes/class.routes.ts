@@ -1,8 +1,21 @@
 import express from 'express'
 import Token from '../service/token';
 const classController = require('../controllers/class/class.controller')
-
+import multer from 'multer';
 const router = express.Router()
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/')
+    },
+    
+    filename: function (req: any, file: any, cb: any) {
+        cb(null, file.originalname)
+    }
+});
+
+const upload = multer({storage: storage,});
+
 
 router.get('/', Token.verifyToken, classController.getAll);
 router.get('/:teacher_id', Token.verifyToken, classController.getAllById);
@@ -38,5 +51,9 @@ router.post('/accept_request_leave', Token.verifyToken, classController.acceptRe
 router.post('/reject_request_leave', Token.verifyToken, classController.rejecttRequestLeave)
 
 router.post('/fetch_parent', Token.verifyToken, classController.fetchParent)
+
+// ! Academic Report Routes
+router.post('/upload_academics', Token.verifyToken, classController.uploadAcademics)
+router.post('/upload_class_assignment', [Token.verifyToken, upload.single('file')], classController.uploadClassAssignment)
 
 export default router

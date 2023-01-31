@@ -228,6 +228,22 @@ exports.resendOtp = async (req: express.Request, res: express.Response, next : a
 }
 
 
+exports.changePassword = async (req: express.Request, res: express.Response, next : any) => {
+    let {complete_phone, password} = req.body
+
+    const salt = genSaltSync(10);
+    password = hashSync(password, salt);
+
+    let authresponse = await AuthSchema.updateOne({complete_phone: complete_phone}, {password: password})
+
+    if(authresponse != null){
+        return res.status(200).json({status: 200, success: true, message: "Password Updated Successfully",})
+    }else{
+        return res.status(200).json({status: 500, success: false, message: "Error Updating Password",})
+    }
+}
+
+
 exports.getAllNotifications = async (req: express.Request, res: express.Response, next : any) => {
 
     const {user_id} = req.body

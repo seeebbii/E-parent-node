@@ -10,6 +10,7 @@ router.get('/profile', Token.fetchProfile, authController.getAll);
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/change_password', authController.changePassword);
 
 router.post('/verify', authController.verifyOtp);
 router.post('/resend', authController.resendOtp);

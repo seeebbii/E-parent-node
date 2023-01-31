@@ -14,6 +14,7 @@ import teacherRoutes from './routes/teacher.routes'
 import parentRoutes from './routes/parent.routes'
 import studentRoutes from './routes/student.routes'
 import chatRoutes from './routes/chat.routes'
+import path from 'path'
 
 // ! Importing controllers
 
@@ -25,9 +26,10 @@ dotenv.config();
 app.use(cors(), (req, res, next) => { next() })
 
 // ! Limiting the json request/response
-app.use(bodyParser.json({ limit: '1000mb' }));
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(upload.any());
+app.use(bodyParser.json({ limit: '1000mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.get('/api', (req, res, next) => {
