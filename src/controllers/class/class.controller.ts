@@ -315,11 +315,12 @@ exports.viewClassAttendance =  async (req: express.Request, res: express.Respons
 
 exports.viewStudentAttendance =  async (req: express.Request, res: express.Response, next : any) => {
 
-    console.log(req.body)
+
+    let currentDate: Date = new Date(req.body.attendance_date)
 
     const {attendance_date, class_id, student_id} = req.body
 
-    let attendance = await AttendanceSchema.find({student_id: student_id, class_id: class_id, attendance_date: attendance_date});
+    let attendance = await AttendanceSchema.find({student_id: student_id, class_id: class_id, attendance_date: currentDate});
 
     if(attendance == null || attendance.length <= 0){
         return res.status(200).json({status:200, success: false, data: []})
