@@ -314,6 +314,9 @@ exports.viewClassAttendance =  async (req: express.Request, res: express.Respons
 }
 
 exports.viewStudentAttendance =  async (req: express.Request, res: express.Response, next : any) => {
+
+    console.log(req.body)
+
     const {attendance_date, class_id, student_id} = req.body
 
     let attendance = await AttendanceSchema.find({student_id: student_id, class_id: class_id, attendance_date: attendance_date});
