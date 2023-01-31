@@ -515,7 +515,5 @@ exports.uploadClassAssignment = async (req: express.Request, res: express.Respon
 
     next()
 
-    
-
 }
 
