@@ -26,10 +26,10 @@ dotenv.config();
 
 app.use(cors(), (req, res, next) => { next() })
 
-// ! Limiting the json request/responses
+// ! Limiting the json request/response
+// app.use(fileUpload());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '1000mb' }));
-app.use(fileUpload());
 app.use(upload.any());
 app.use('/src/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public/uploads', express.static(path.join(__dirname, 'uploads')));
