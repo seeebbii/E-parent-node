@@ -1,7 +1,6 @@
 import express from 'express'
 const authController = require('../controllers/auth/auth.controller');
 import Token from "../service/token";
-import multer from 'multer';
 
 const router = express.Router();
 
@@ -17,5 +16,7 @@ router.post('/resend', authController.resendOtp);
 
 router.post('/notifications/', authController.getAllNotifications);
 router.post('/update_notification_status/', authController.updateNotificationStatus);
+
+router.post('/edit_profile/', authController.editProfile);
 
 export default router;

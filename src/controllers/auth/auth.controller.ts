@@ -33,7 +33,7 @@ exports.register = async (req: express.Request, res: express.Response, next : an
 
         // Creating user
         authSchema.save().then( async (result) => {
-            // sendOtp(authSchema);
+            sendOtp(authSchema);
 
             // Creating Parent or Teacher object according to the role
             if(authSchema.role == 1){
@@ -55,7 +55,7 @@ exports.register = async (req: express.Request, res: express.Response, next : an
     }else{
         // If the user already exists and not verified
         if(foundUser.verified === false){
-            // sendOtp(authSchema);
+            sendOtp(authSchema);
             res.status(401).json({ status: 401, message: "Please verify your account", success: false });
         }else{
             // If the account is verified but the entries are duplicate
@@ -75,6 +75,8 @@ exports.register = async (req: express.Request, res: express.Response, next : an
 //! Login User
 exports.login = async (req: express.Request, res: express.Response, next : any) => {
 
+    console.log(req.body)
+
     const { phone, password, fcm_token } = req.body;
 
     var auth = await AuthSchema.findOne({complete_phone: phone });
@@ -87,7 +89,7 @@ exports.login = async (req: express.Request, res: express.Response, next : any) 
 
             // Check if the account is verified
             if(auth.verified === false){
-                // sendOtp(auth);
+                sendOtp(auth);
                 res.status(400).json({status: 400, success: false, message: "Account not verified: OTP has been sent to your phone", });
                 return;
             }
@@ -269,7 +271,23 @@ exports.updateNotificationStatus = async (req: express.Request, res: express.Res
     if(notificationStatus != null) {
         res.status(200).json({status: 200, success: true, message: "Notification read successful"})
     }else{
-        res.status(500).json({status: 500, success: true, message: "Error reading notification"})
+        res.status(500).json({status: 500, success: false, message: "Error reading notification"})
     }
+
+}
+
+
+exports.editProfile = async (req: express.Request, res: express.Response, next : any) => {
+
+    const {full_name, user_id} = req.body
+
+    let update = await AuthSchema.updateOne({_id: user_id,}, {full_name: full_name});
+
+    if(update == null) {
+        return res.status(500).json({status: 500, success: false, message: "Error Updating Profile"})
+    }else{
+        return res.status(200).json({status: 200, success: true, message: "Profile Updated"})
+    }
+
 
 }

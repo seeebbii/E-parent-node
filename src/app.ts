@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import multer from "multer"
 import {SocketHandler} from './service/socket_handler'
+const fileUpload = require('express-fileupload');
 
 // ! Importing routes
 import authRoutes from './routes/auth.routes'
@@ -26,10 +27,12 @@ dotenv.config();
 app.use(cors(), (req, res, next) => { next() })
 
 // ! Limiting the json request/response
-app.use(upload.any());
+// app.use(fileUpload());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '1000mb' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(upload.any());
+app.use('/src/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/public/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 app.get('/api', (req, res, next) => {

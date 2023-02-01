@@ -6,7 +6,7 @@ const router = express.Router()
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './uploads/')
+        cb(null, './src/uploads')
     },
     
     filename: function (req: any, file: any, cb: any) {
@@ -54,6 +54,7 @@ router.post('/fetch_parent', Token.verifyToken, classController.fetchParent)
 
 // ! Academic Report Routes
 router.post('/upload_academics', Token.verifyToken, classController.uploadAcademics)
-router.post('/upload_class_assignment', [Token.verifyToken, upload.single('file')], classController.uploadClassAssignment)
+router.post('/view_academics', Token.verifyToken, classController.viewAcademics)
+router.post('/upload_class_assignment', Token.verifyToken, classController.uploadClassAssignment)
 
 export default router

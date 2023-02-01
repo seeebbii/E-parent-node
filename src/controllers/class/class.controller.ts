@@ -13,6 +13,7 @@ import LeaveSchema from '../../schema/class/leave_schema'
 import AcademicReportSchema from '../../schema/class/academic_report_schema'
 import FirebaseAdminHelper from '../../service/firebase_admin_helper'
 import path from 'path'
+import AssignmentSchema from '../../schema/class/assignment_schema'
 
 exports.getAll = async (req: express.Request, res: express.Response, next : any) => {
 
@@ -162,18 +163,41 @@ exports.insert = async (req: express.Request, res: express.Response, next : any)
 
 exports.createDiary = async (req: express.Request, res: express.Response, next : any) => {
 
-    const {class_id, diary, current_date} = req.body;
+    const {class_id, diary, current_date, teacher_id} = req.body;
 
-    // Find if the diary for current date and class has already been uploaded
-    // If yes, then return the object and prompt the user for updating the diary
+    let teacher = await AuthSchema.findOne({_id: teacher_id})
 
-    // let diaryResult = await DiarySchema.findOne({class_id: class_id, current_date: current_date})
+    let classObject = await ClassSchema.findOne({_id: class_id})
 
-    // if(diaryResult != null) {
-    //     return res.status(200).json({status:200, success: true, message: "Diary already exists"})
-    // }
+    let students = await StudentSchema.find({class_id: class_id});
 
-    await DiarySchema.updateMany({class_id: class_id, current_date: current_date}, {diary: diary, class_id: class_id, current_date: current_date}, {upsert: true}).then((result) => {
+    await DiarySchema.updateMany({class_id: class_id, current_date: current_date}, {diary: diary, class_id: class_id, current_date: current_date}, {upsert: true}).then(async (result) => {
+
+
+        for(var student of students){
+
+
+            let parent = await AuthSchema.findOne({complete_phone: student.parent_phone})
+
+            console.log(parent?.fcm_token)
+
+            const notification_options = {
+                priority: "high",
+                timeToLive: 60 * 60 * 24
+            };
+                
+            const message_payload = Utils.formatNotificationMessage(`Diary Update`,
+            `${classObject!.grade}${classObject!.section} Diary has been uploaded for date ${current_date}`);
+                
+                
+            FirebaseAdminHelper.messaging().sendToDevice(parent!.fcm_token, message_payload, notification_options);
+            
+            await new NotificationSchema({sent_by: teacher!._id.toString(), sent_to: parent!._id.toString(), notification_type: "Attendance", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+            
+        
+        }
+
+
         return res.status(200).json({status:200, success: true, message: "Diary Uploaded"})
     }).catch((err) => {
         return res.status(400).json({ status:400, message: err, success: false });
@@ -280,20 +304,44 @@ exports.updateClassTeacher =  async (req: express.Request, res: express.Response
 
 exports.uploadClassAttendance = async (req: express.Request, res: express.Response, next : any) => {
 
-    const {students} = req.body;
+    const students: Array<any> = req.body.students as Array<any>;
+
+    // console.log(req.body)
 
     for(var student of students){
+
+
 
         await AttendanceSchema.updateOne({attendance_date: student.attendance_date, student_id: student.student_id, class_id: student.class_id}, 
             {class_id: student.class_id, student_id: student.student_id, attendance_date: student.attendance_date, attendance_status: student.attendance_status},
             {upsert: true})
 
+
+        let classObject = await ClassSchema.findOne({_id: student.class_id})
+
+        let teacher = await AuthSchema.findOne({_id: classObject!.classTeacher})
+
+        let myStudent = await StudentSchema.findOne({_id: student.student_id})
+
+        let parent = await AuthSchema.findOne({complete_phone: myStudent!.parent_phone});
+
+
+         const notification_options = {
+            priority: "high",
+            timeToLive: 60 * 60 * 24
+        };
+            
+        const message_payload = Utils.formatNotificationMessage(`Attendance Update`,
+        `${myStudent!.full_name}-${classObject!.grade}${classObject!.section} Attendance has been uploaded for date ${student.attendance_date}`);
+            
+            
+        FirebaseAdminHelper.messaging().sendToDevice(parent!.fcm_token, message_payload, notification_options);
+        
+        await new NotificationSchema({sent_by: teacher!._id.toString(), sent_to: parent!._id.toString(), notification_type: "Attendance", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+        
+    
+
     }
-
-
-    // if current date attendance already exists, update all attendance
-
-    // await AttendanceSchema.updateMany({attendance_date: attendance_date}, {$set : })
 
     return res.status(200).json({status:200, success: true, message: "Attendance uploaded"})
 
@@ -497,23 +545,130 @@ exports.fetchParent = async (req: express.Request, res: express.Response, next :
 
 exports.uploadAcademics = async (req: express.Request, res: express.Response, next : any) => {
 
-    // console.log(__dirname);
+    const {student_id, teacher_id, course_id, type, obtained_marks,total_marks} = req.body
+    let course = await CourseSchema.findOne({_id: course_id})
 
-    // console.log(req.file)
+    let studet = await StudentSchema.findOne({_id: student_id})
+    
+    let parent = await AuthSchema.findOne({complete_phone: studet!.parent_phone});
 
-    next()
+    let teacher = await AuthSchema.findOne({_id: teacher_id});
 
+
+    let report = await new AcademicReportSchema(req.body).save();
+
+    if(report != null){
+
+        const notification_options = {
+            priority: "high",
+            timeToLive: 60 * 60 * 24
+        };
+        
+        const message_payload = Utils.formatNotificationMessage(`${studet!.full_name}'s ${type} Marks Uploaded`,
+        `Course: ${course!.course_name}, Obtained Marks: ${obtained_marks}/${total_marks}`);
+        
+        
+        FirebaseAdminHelper.messaging().sendToDevice(parent!.fcm_token, message_payload, notification_options);
+    
+        await new NotificationSchema({sent_by: teacher_id.toString(), sent_to: parent!._id.toString(), notification_type: "Academic", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+    
+
+        return res.status(200).json({status:200, success: true, message: "Academic Report added"})
+    }else{
+        return res.status(500).json({status:500, success: false, message: "Error Uploading Academic Report"})
+    }
+}
+
+
+exports.viewAcademics = async (req: express.Request, res: express.Response, next : any) => {
+
+    let records = await AcademicReportSchema.find(req.body).sort({createdAt: -1})
+
+    for(var record of records) {
+        record.teacher_id = await AuthSchema.findOne({_id: record.teacher_id})
+    }
+
+    return res.status(200).json({status:200, success: true, data: records })
 }
 
 exports.uploadClassAssignment = async (req: express.Request, res: express.Response, next : any) => {
 
-    console.log(__dirname);
+    // const {}
+  
 
-    console.log(req.body);
 
-    console.log(req.file)
+    // const {class_id, title, teacher_id} = req.body
+    // let uploadedFilePath = req.file.path.replace("\\", '/')
 
+    // let ass = new AssignmentSchema({class_id: class_id, title: title, file: uploadedFilePath}).save()
+
+    // if(ass != null) {
+
+    //     let teacher = await AuthSchema.findOne({_id: teacher_id});
+    //     let classObject = await ClassSchema.findOne({_id: class_id});
+
+
+    //     let students = await StudentSchema.find({class_id: class_id})
+
+    //     for(var student of students){
+
+    //         // Fetch student's parent against the parent phone number and then send push notification to their fcm token
+
+    //         let parent = await AuthSchema.findOne({complete_phone: student!.parent_phone});
+
+
+    //         // Sending firebase push notification and adding notification to their notification schema
+
+    //         const notification_options = {
+    //             priority: "high",
+    //             timeToLive: 60 * 60 * 24
+    //         };
+        
+    //         const message_payload = Utils.formatNotificationMessage(`A new assignment has been uploaded`,
+    //         `New assignment uploaded by ${teacher!.full_name} for class ${classObject?.grade}${classObject?.section}`);
+        
+        
+    //         FirebaseAdminHelper.messaging().sendToDevice(parent!.fcm_token, message_payload, notification_options);
+    
+    //         await new NotificationSchema({sent_by: teacher_id.toString(), sent_to: parent!._id.toString(), notification_type: "Assignment", title: message_payload.notification.title, description: message_payload.notification.body,}).save()
+    
+
+    //     }
+
+
+    //     return res.status(200).json({status:200, success: true, message: "Class assignment uploaded"})
+    // }else{
+    //     return res.status(500).json({status:500, success: false, message: "Error uploading assignment"})
+    // }
+    
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send('No files were uploaded.');
+    }else {
+        let sampleFile: any = req.files;
+        // let uploadPath =  path.join(__dirnamse, '../../uploads/', sampleFile.name);
+
+        console.log(sampleFile.name)
+        // console.log(uploadPath)
+
+        // sampleFile.mv(uploadPath, function (err: any) {
+        //   if (err) throw err;
+        //   console.log("uploaded")
+        // })
+    }
+
+
+    // console.log(files.file )
+
+    // console.log(dir)
     next()
 
 }
+
+
+exports.viewAssignments = async (req: express.Request, res: express.Response, next : any) => {
+
+    let ass = new AssignmentSchema
+
+}
+
 

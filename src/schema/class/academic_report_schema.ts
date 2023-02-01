@@ -10,6 +10,11 @@ const academicReportSchema = new AcademicReportSchema({
         required: true
     },
 
+    course_id: {
+        type: Object,
+        required: true
+    },
+    
     class_id: {
         type: Object,
         required: true
